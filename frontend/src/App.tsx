@@ -22,42 +22,47 @@ export default function LinearSystemCalculator() {
         setMatrix(newMatrix);
     };
 
-    // Aumenta o número de equações (linhas)
-    const addRow = () => {
-        if (rows >= MAX_SIZE) return;
-        setRows(rows + 1);
-        setMatrix((prev) => [
-            ...prev,
-            Array(cols + 1).fill(""),
-        ]);
+    const addRowAndCol = () => {
+        if (rows >= MAX_SIZE || cols >= MAX_SIZE) return;
+
+        const newRows = rows + 1;
+        const newCols = cols + 1;
+
+        // Atualiza as linhas existentes para adicionar uma nova coluna antes do termo independente
+        const updatedMatrix = matrix.map((row) => {
+            // Remove o termo independente (última posição)
+            const independentTerm = row[row.length - 1];
+            // Adiciona uma nova coluna vazia antes do termo independente
+            return [...row.slice(0, -1), "", independentTerm];
+        });
+
+        // Adiciona uma nova linha com newCols + 1 elementos (cols + 1 variáveis + termo independente)
+        const newRow = Array(newCols + 1).fill("");
+
+        // Atualiza o estado
+        setRows(newRows);
+        setCols(newCols);
+        setMatrix([...updatedMatrix, newRow]);
     };
 
-    // Remove uma equação (linha)
-    const removeRow = () => {
-        if (rows <= MIN_SIZE) return;
-        setRows(rows - 1);
-        setMatrix((prev) => prev.slice(0, -1));
-    };
+    const removeRowAndCol = () => {
+        if (rows <= MIN_SIZE || cols <= MIN_SIZE) return;
 
-    // Aumenta o número de variáveis (colunas)
-    const addCol = () => {
-        if (cols >= MAX_SIZE) return;
-        setCols(cols + 1);
-        setMatrix((prev) =>
-            prev.map((row) => [...row.slice(0, -1), "", row[row.length - 1]])
-        );
-    };
+        const newRows = rows - 1;
+        const newCols = cols - 1;
 
-    // Remove uma variável (coluna)
-    const removeCol = () => {
-        if (cols <= MIN_SIZE) return;
-        setCols(cols - 1);
-        setMatrix((prev) =>
-            prev.map((row) => {
-                // Remove a penúltima coluna (antes do termo independente)
-                return [...row.slice(0, -2), row[row.length - 1]];
-            })
-        );
+        // Remove a última linha
+        let updatedMatrix = matrix.slice(0, newRows);
+
+        // Remove a penúltima coluna (antes do termo independente) de cada linha
+        updatedMatrix = updatedMatrix.map((row) => {
+            // Remove a penúltima coluna
+            return [...row.slice(0, -2), row[row.length - 1]];
+        });
+
+        setRows(newRows);
+        setCols(newCols);
+        setMatrix(updatedMatrix);
     };
 
     // Envia os dados para a API
@@ -80,7 +85,6 @@ export default function LinearSystemCalculator() {
 
         // Monta o array multidimensional com números convertidos
         // Cada linha: [coeficientes..., termo independente]
-        //const system = matrix.map((row) => row.map((val) => Number(val)));
         const A = matrix.map((row) => row.slice(0, cols).map(Number)); // coeficientes
         const B = matrix.map((row) => Number(row[cols])); // termos independentes
 
@@ -118,17 +122,11 @@ export default function LinearSystemCalculator() {
             </p>
 
             <div style={{ marginBottom: 10 }}>
-                <button onClick={addRow} disabled={rows >= MAX_SIZE}>
+                <button onClick={addRowAndCol} disabled={rows >= MAX_SIZE || cols >= MAX_SIZE}>
                     + Equação
                 </button>
-                <button onClick={removeRow} disabled={rows <= MIN_SIZE} style={{ marginLeft: 5 }}>
+                <button onClick={removeRowAndCol} disabled={rows <= MIN_SIZE || cols <= MIN_SIZE} style={{ marginLeft: 5 }}>
                     - Equação
-                </button>
-                <button onClick={addCol} disabled={cols >= MAX_SIZE} style={{ marginLeft: 20 }}>
-                    + Variável
-                </button>
-                <button onClick={removeCol} disabled={cols <= MIN_SIZE} style={{ marginLeft: 5 }}>
-                    - Variável
                 </button>
             </div>
 
