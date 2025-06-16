@@ -8,12 +8,14 @@ export default function LinearSystemCalculator() {
     const [rows, setRows] = useState(MIN_SIZE);
     const [cols, setCols] = useState(MIN_SIZE);
     // matriz de coeficientes: rows x (cols + 1) -> o +1 é para o termo independente
-    // Exemplo: para 2x2, temos 2 equações, 2 variáveis + 1 termo independente
     const [matrix, setMatrix] = useState(
         Array(MIN_SIZE)
             .fill(0)
             .map(() => Array(MIN_SIZE + 1).fill(""))
     );
+
+    // Estado para armazenar o resultado da API
+    const [resultado, setResultado] = useState("");
 
     // Atualiza o valor de um campo específico
     const handleChange = (rowIndex: number, colIndex: number, value: string) => {
@@ -66,7 +68,7 @@ export default function LinearSystemCalculator() {
     };
 
     // Envia os dados para a API
-    const handleSubmit = async (e: { preventDefault: () => void; }) => {
+    const handleSubmit = async (e: { preventDefault: () => void }) => {
         e.preventDefault();
 
         // Validação: todos os campos devem ser preenchidos com números válidos
@@ -83,8 +85,7 @@ export default function LinearSystemCalculator() {
             }
         }
 
-        // Monta o array multidimensional com números convertidos
-        // Cada linha: [coeficientes..., termo independente]
+        // Monta os arrays A e B
         const A = matrix.map((row) => row.slice(0, cols).map(Number)); // coeficientes
         const B = matrix.map((row) => Number(row[cols])); // termos independentes
 
@@ -107,14 +108,20 @@ export default function LinearSystemCalculator() {
             }
 
             const data = await response.json();
-            alert("Resposta da API: " + JSON.stringify(data));
+
+            if (Array.isArray(data)) {
+                const formattedResult = `O conjunto solução do cálculo é: S={(${data.join(",")})}`;
+                setResultado(formattedResult);
+            } else {
+                setResultado(JSON.stringify(data, null, 2));
+            }
         } catch (error) {
-            alert("Erro ao enviar dados: " + (error as Error).message);
+            setResultado("Erro ao enviar dados: " + (error as Error).message);
         }
     };
 
     return (
-        <div style={{ maxWidth: 900, margin: "20px auto", fontFamily: "Arial" }}>
+        <div style={{ maxWidth: 900, margin: "20px auto", fontFamily: "Arial", display: "grid"}}>
             <h1>Calculadora de Sistemas Lineares</h1>
             <p>
                 Insira os coeficientes e termos independentes do sistema linear.
@@ -122,11 +129,18 @@ export default function LinearSystemCalculator() {
             </p>
 
             <div style={{ marginBottom: 10 }}>
-                <button onClick={addRowAndCol} disabled={rows >= MAX_SIZE || cols >= MAX_SIZE}>
-                    + Equação
+                <button
+                    onClick={addRowAndCol}
+                    disabled={rows >= MAX_SIZE || cols >= MAX_SIZE}
+                >
+                    + Equação e Variável
                 </button>
-                <button onClick={removeRowAndCol} disabled={rows <= MIN_SIZE || cols <= MIN_SIZE} style={{ marginLeft: 5 }}>
-                    - Equação
+                <button
+                    onClick={removeRowAndCol}
+                    disabled={rows <= MIN_SIZE || cols <= MIN_SIZE}
+                    style={{ marginLeft: 5 }}
+                >
+                    - Equação e Variável
                 </button>
             </div>
 
@@ -182,6 +196,24 @@ export default function LinearSystemCalculator() {
                     Enviar para API
                 </button>
             </form>
+
+            {/* Campo para mostrar o resultado da API */}
+            <textarea
+                readOnly
+                value={resultado}
+                rows={10}
+                style={{
+                    width: "100%",
+                    fontFamily: "monospace",
+                    fontSize: 14,
+                    marginTop: 20,
+                    resize: "vertical",
+                    padding: 10,
+                    borderRadius: 4,
+                    border: "1px solid #ccc",
+                }}
+                placeholder="Resultado aparecerá aqui após o cálculo"
+            />
         </div>
     );
 }
