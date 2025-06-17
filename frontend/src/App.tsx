@@ -93,7 +93,7 @@ export default function LinearSystemCalculator() {
 
         try {
             const response = await fetch(
-                "http://localhost:8080/api/sistemas-lineares/eliminacao-gauss",
+                "http://localhost:8080/api/sistemas-lineares/cramer",
                 {
                     method: "POST",
                     headers: {

@@ -2,7 +2,6 @@ package org.example.a3estruturasmatematicas.service.DTO;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import org.example.a3estruturasmatematicas.service.Fracao;
 
 public class SistemaLinearDTO {
     private double[][] A;
